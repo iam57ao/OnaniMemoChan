@@ -1,0 +1,1 @@
+"""Onani Memo Chan package."""

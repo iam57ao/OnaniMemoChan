@@ -1,0 +1,55 @@
+[project]
+name = "onani-memo-chan"
+version = "0.1.0"
+description = "简约的 Telegram 手冲记录机器人，健康手冲，从我做起！"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "python-telegram-bot[job-queue]>=22.5",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py313"
+src = ["onani_memo_chan"]
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "B",
+    "I",
+    "UP",
+    "SIM",
+]
+ignore = [
+    "E501",
+]
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["onani_memo_chan"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = false

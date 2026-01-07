@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.venv
+.ruff_cache
+__pycache__
+*.pyc
+data
+docs
+README.md
+uv.lock
