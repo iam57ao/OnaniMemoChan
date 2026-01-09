@@ -181,6 +181,49 @@ def build_undo_keyboard(session_id: str, record_id: int) -> InlineKeyboardMarkup
     )
 
 
+def build_profile_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        [[InlineKeyboardButton("修改", callback_data="me:edit")]]
+    )
+
+
+def build_profile_edit_keyboard() -> InlineKeyboardMarkup:
+    rows = [
+        [
+            InlineKeyboardButton("修改昵称", callback_data="me:nickname"),
+            InlineKeyboardButton("修改生日", callback_data="me:birthday"),
+         ],
+        [
+            InlineKeyboardButton("修改身高", callback_data="me:height"),
+            InlineKeyboardButton("修改体重", callback_data="me:weight"),
+        ],
+        [InlineKeyboardButton("返回", callback_data="me:back")],
+    ]
+    return InlineKeyboardMarkup(rows)
+
+
+def format_profile_message(
+    nickname: str,
+    height: str,
+    weight: str,
+    birthday: str,
+    total_records: int,
+    last_record: str,
+    started_at: str,
+) -> str:
+    lines = [
+        "<b>我的信息</b>",
+        f"• 昵称：{nickname}",
+        f"• 身高：{height}",
+        f"• 体重：{weight}",
+        f"• 生日：{birthday}",
+        f"• 总记录次数：{total_records}",
+        f"• 最后一次利用：{last_record}",
+        f"• 开始利用时间：{started_at}",
+    ]
+    return "\n".join(lines)
+
+
 def build_step_view(session: Session) -> StepView:
     if session.step == Step.RATING:
         return StepView("<b>体验感</b>\n主人冲爽了吗：", build_rating_keyboard(session.session_id))

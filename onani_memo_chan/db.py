@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from threading import Lock
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class Database:
@@ -51,26 +51,32 @@ class Database:
                 "SELECT version FROM schema_meta LIMIT 1;"
             ).fetchone()
             if row is None:
-                self._apply_schema_v1()
+                self._apply_schema_v2()
                 self._conn.execute(
                     "INSERT INTO schema_meta (version) VALUES (?);",
                     (SCHEMA_VERSION,),
                 )
-            elif row["version"] == 2 and SCHEMA_VERSION == 1:
-                # Older code marked the same schema as v2; normalize back to v1.
+            elif row["version"] == 1 and SCHEMA_VERSION == 2:
+                self._migrate_v1_to_v2()
                 self._conn.execute("UPDATE schema_meta SET version = ?;", (SCHEMA_VERSION,))
+            elif row["version"] == 2 and SCHEMA_VERSION == 2:
+                self._ensure_user_columns()
             elif row["version"] != SCHEMA_VERSION:
                 raise RuntimeError(
                     f"Unsupported schema version {row['version']}, expected {SCHEMA_VERSION}."
                 )
             self._conn.commit()
 
-    def _apply_schema_v1(self) -> None:
+    def _apply_schema_v2(self) -> None:
         self._conn.executescript(
             """
             CREATE TABLE IF NOT EXISTS users (
               user_id         INTEGER PRIMARY KEY,
               timezone        TEXT NOT NULL,
+              nickname        TEXT,
+              height_cm       INTEGER,
+              weight_kg       REAL,
+              birthday        TEXT,
               created_at_utc  TEXT NOT NULL,
               updated_at_utc  TEXT NOT NULL
             );
@@ -99,3 +105,19 @@ class Database:
               ON records(user_id, timestamp_utc);
             """
         )
+
+    def _migrate_v1_to_v2(self) -> None:
+        self._ensure_user_columns()
+
+    def _ensure_user_columns(self) -> None:
+        columns = {
+            row["name"] for row in self._conn.execute("PRAGMA table_info(users);")
+        }
+        if "nickname" not in columns:
+            self._conn.execute("ALTER TABLE users ADD COLUMN nickname TEXT;")
+        if "height_cm" not in columns:
+            self._conn.execute("ALTER TABLE users ADD COLUMN height_cm INTEGER;")
+        if "weight_kg" not in columns:
+            self._conn.execute("ALTER TABLE users ADD COLUMN weight_kg REAL;")
+        if "birthday" not in columns:
+            self._conn.execute("ALTER TABLE users ADD COLUMN birthday TEXT;")
